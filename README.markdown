@@ -46,8 +46,6 @@ var AuthExtension = {
 client.addExtension(AuthExtension);
 ```
 
-
-
 Tech
 -------------------------------------------
 用户离开房间的两种情况:
@@ -56,4 +54,8 @@ Tech
 
 
 清理失去网络连接的clientIds:
-1. TODO
+
+TODO
+-------------------------------------------
+1. 管理后台
+2. 抽象Redis.current，以避免覆写全局
