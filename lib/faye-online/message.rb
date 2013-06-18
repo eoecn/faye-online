@@ -84,8 +84,8 @@ class FayeOnline
       end
 
       # *结束* save 当前用户的clientIds数组
-      Redis.current.hset redis_key__room, current_user['uid'], current_user_in_current_room__clientIds.to_json
-      Redis.current.hset redis_key__time, current_user['uid'], current_user_in_current_time__clientIds.to_json
+      FayeOnline.redis.hset redis_key__room, current_user['uid'], current_user_in_current_room__clientIds.to_json
+      FayeOnline.redis.hset redis_key__time, current_user['uid'], current_user_in_current_time__clientIds.to_json
 
       # 发布在线用户列表
       FayeOnline.faye_client.publish("#{room_channel}/user_list", {'count' => online_list.user_count, 'user_list' => online_list.user_list, 'channel_name' => room_channel})
@@ -107,7 +107,7 @@ class FayeOnline
       _s = {"连上" => 1, "离开" => 0}[status]
       # 用可以过期的Redis键值对来检测单个clientId上次是否为 "连上" 或 "离开"
       _k = "/#{FayeOnline.redis_opts[:namespace]}/clientId_status/#{current_clientId}"
-      _s_old = Redis.current.get(_k).to_s
+      _s_old = FayeOnline.redis.get(_k).to_s
       # *连上*和*离开* 只能操作一次
       if _s_old.blank? || # 没登陆的
         (_s.to_s != _s_old) # 已登陆的
@@ -115,9 +115,9 @@ class FayeOnline
         # 把不*连上*和*离开*把放一张表，写时不阻塞
         FayeUserLoginLog.create! :channel_id => FayeChannel[time_channel], :uid => current_user['uid'], :t => DateTime.now, :status => _s, :clientId => current_clientId
 
-        Redis.current.multi do
-          Redis.current.set(_k, _s)
-          Redis.current.expire(_k, 2.weeks)
+        FayeOnline.redis.multi do
+          FayeOnline.redis.set(_k, _s)
+          FayeOnline.redis.expire(_k, 2.weeks)
         end
       end
     end
@@ -128,13 +128,13 @@ class FayeOnline
     def current_channel
       # 从clientId反设置auth信息，并只设置一次
       if message['auth'] && !message['is_auth_load']
-        Redis.current.multi do
-          Redis.current.set(redis_key__auth, message['auth'].to_json)
-          Redis.current.expire(redis_key__auth, 2.weeks)
+        FayeOnline.redis.multi do
+          FayeOnline.redis.set(redis_key__auth, message['auth'].to_json)
+          FayeOnline.redis.expire(redis_key__auth, 2.weeks)
         end
         message['is_auth_load'] = true
       else
-        message['auth'] ||= JSON.parse(Redis.current.get(redis_key__auth)) rescue {}
+        message['auth'] ||= JSON.parse(FayeOnline.redis.get(redis_key__auth)) rescue {}
       end
       message['channel']
     end
@@ -148,13 +148,13 @@ class FayeOnline
     # room和time 分别对应 clientId 的关系
     def current_user_in_current_room__clientIds
       @_current_user_in_current_room__clientIds ||= begin
-        _a = JSON.parse(Redis.current.hget(redis_key__room, current_user['uid'])) rescue []
+        _a = JSON.parse(FayeOnline.redis.hget(redis_key__room, current_user['uid'])) rescue []
         Set.new(_a)
       end
     end
     def current_user_in_current_time__clientIds
       @_current_user_in_current_time__clientIds ||= begin
-        _a = JSON.parse(Redis.current.hget(redis_key__time, current_user['uid'])) rescue []
+        _a = JSON.parse(FayeOnline.redis.hget(redis_key__time, current_user['uid'])) rescue []
         Set.new(_a)
       end
     end

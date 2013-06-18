@@ -19,7 +19,7 @@ if ENV['DEBUG_FAYE']
 end
 
 class FayeOnline
-  cattr_accessor :engine_proxy
+  cattr_accessor :engine_proxy, :redis
 
   ValidChannel = proc {|channel| !!channel.to_s.match(/\A[0-9a-z\/]+\Z/i) } # 只支持数字字母和斜杠
   MONITORED_CHANNELS = ['/meta/connect', '/meta/disconnect'] # '/meta/subscribe', '/connect', '/close' are ignored
@@ -31,8 +31,8 @@ class FayeOnline
     raise "Please run `$faye_server = FayeOnline.get_server` first, cause we have to bind disconnect event." if not $faye_server.is_a?(Faye::RackAdapter)
     FayeOnline.redis_opts = redis_opts
     FayeOnline.valid_message_proc = valid_message_proc || (proc {|message| true })
-    Redis.current = Redis.new(FayeOnline.redis_opts)
-    Redis.current.select FayeOnline.redis_opts[:database]
+    FayeOnline.redis = Redis.new(FayeOnline.redis_opts)
+    FayeOnline.redis.select FayeOnline.redis_opts[:database]
 
     FayeOnline.faye_client ||= Faye::Client.new(LOCAL_FAYE_URI.to_s)
 
@@ -52,8 +52,8 @@ class FayeOnline
 
   def self.channel_clientIds_array
     array = []
-    Redis.current.keys("/#{FayeOnline.redis_opts[:namespace]}/uid_to_clientIds*").sort.each do |k|
-      _data = Redis.current.hgetall(k).values.map {|i| JSON.parse(i) rescue i }.flatten
+    FayeOnline.redis.keys("/#{FayeOnline.redis_opts[:namespace]}/uid_to_clientIds*").sort.each do |k|
+      _data = FayeOnline.redis.hgetall(k).values.map {|i| JSON.parse(i) rescue i }.flatten
       array << [k, _data]
     end
     array
@@ -76,7 +76,7 @@ def FayeOnline.get_server redis_opts, valid_message_proc = nil
   $faye_server = Faye::RackAdapter.new(
     :mount   => '/faye',
     :timeout => 42,
-    :engine  => Faye_redis_opts.merge(:type  => Faye::Redis),
+    :engine  => redis_opts.merge(:type  => Faye::Redis),
     :ping => 30 # (optional) how often, in seconds, to send keep-alive ping messages over WebSocket and EventSource connections. Use this if your Faye server will be accessed through a proxy that kills idle connections.
   )
 
@@ -103,10 +103,10 @@ def FayeOnline.get_server redis_opts, valid_message_proc = nil
           # 没删除成功，因为之前没有设置auth
           k = (tmp.detect {|a, b| b.index(_clientId) } || [])[0]
           # 直接从redis清除无效_clientId
-          Redis.current.hgetall(k).each do |k2, v2|
+          FayeOnline.redis.hgetall(k).each do |k2, v2|
             v3 = JSON.parse(v2) rescue []
             v3.delete _clientId
-            Redis.current.hset(k, k2, v3.to_json)
+            FayeOnline.redis.hset(k, k2, v3.to_json)
           end if k
         end
       end
