@@ -1,0 +1,6 @@
+production:
+  host: localhost
+  adapter: sqlite3
+  encoding: utf8
+  collation: utf8_general_ci
+  database: ":memory:"

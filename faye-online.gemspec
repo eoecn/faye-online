@@ -10,11 +10,16 @@ Gem::Specification.new do |s|
 
   s.add_dependency "json"
   s.add_dependency "rails"
+  s.add_dependency "activesupport"
   s.add_dependency "activerecord_idnamecache"
   s.add_dependency "thin"
   s.add_dependency "redis"
   s.add_dependency "faye"
   s.add_dependency "faye-redis"
+
+  s.add_development_dependency 'sqlite3'
+  s.add_development_dependency 'combustion'
+  s.add_development_dependency 'pry-debugger'
 
   s.files = `git ls-files`.split("\n")
 

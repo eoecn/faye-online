@@ -18,6 +18,9 @@ if ENV['DEBUG_FAYE']
   Faye.logger = lambda {|m| _logger.info m }
 end
 
+database_yml = ENV['database_yml'] || File.join(ENV['RAILS_PATH'], 'config/database.yml')
+ActiveRecord::Base.establish_connection YAML.load_file(database_yml).inject({}) {|h, kv| h[kv[0].to_sym] = kv[1]; h }[:production]
+
 class FayeOnline
   cattr_accessor :engine_proxy, :redis
 
@@ -28,6 +31,7 @@ class FayeOnline
   cattr_accessor :redis_opts, :faye_client, :valid_message_proc
 
   def initialize redis_opts, valid_message_proc = nil
+
     raise "Please run `$faye_server = FayeOnline.get_server` first, cause we have to bind disconnect event." if not $faye_server.is_a?(Faye::RackAdapter)
     FayeOnline.redis_opts = redis_opts
     FayeOnline.valid_message_proc = valid_message_proc || (proc {|message| true })
@@ -38,7 +42,6 @@ class FayeOnline
 
     # 配置ActiveRecord
     if Rails.root.nil?
-      ActiveRecord::Base.establish_connection YAML.load_file(File.join(ENV['RAILS_PATH'], 'config/database.yml')).inject({}) {|h, kv| h[kv[0].to_sym] = kv[1]; h }[:production]
       Dir[File.expand_path('../../app/models/*.rb', __FILE__)].each {|f| require f }
     end
 
