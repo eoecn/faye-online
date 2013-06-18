@@ -18,7 +18,7 @@ if ENV['DEBUG_FAYE']
   Faye.logger = lambda {|m| _logger.info m }
 end
 
-database_yml = ENV['database_yml'] || File.join(ENV['RAILS_PATH'], 'config/database.yml')
+database_yml = ENV['database_yml'] || File.join(ENV['RAILS_PATH'] || `pwd`.strip, 'config/database.yml')
 ActiveRecord::Base.establish_connection YAML.load_file(database_yml).inject({}) {|h, kv| h[kv[0].to_sym] = kv[1]; h }[:production]
 
 class FayeOnline

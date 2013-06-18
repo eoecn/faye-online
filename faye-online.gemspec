@@ -13,6 +13,7 @@ Gem::Specification.new do |s|
   s.add_dependency "activesupport"
   s.add_dependency "activerecord_idnamecache"
   s.add_dependency "thin"
+  s.add_dependency "rainbows"
   s.add_dependency "redis"
   s.add_dependency "faye"
   s.add_dependency "faye-redis"
