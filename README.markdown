@@ -60,7 +60,7 @@ TODO
 -------------------------------------------
 1. 管理后台
 2. 封装持久化数据写入，存储包括做生产用的Redis和测试用的内存。抽象Redis.current，以避免覆写全局
-3. Cluster front end
+3. Cluster front end https://github.com/alexkazeko/faye_shards
 
 
 Related Resources

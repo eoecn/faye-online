@@ -1,6 +1,7 @@
 # encoding: UTF-8
 
 require 'rake'
+require 'rake/testtask'
 
 namespace :faye do
   desc "Start faye server"
@@ -18,3 +19,10 @@ namespace :faye do
   end
 
 end
+
+Rake::TestTask.new do |t|
+ t.libs << 'test'
+end
+
+desc "Run tests"
+task :default => :test
