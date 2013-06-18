@@ -1,5 +1,6 @@
 # encoding: UTF-8
 
+require 'yaml'
 require 'thin'
 require 'json'
 require 'rails'
@@ -27,6 +28,7 @@ class FayeOnline
   cattr_accessor :redis_opts, :faye_client, :valid_message_proc
 
   def initialize redis_opts, valid_message_proc = nil
+    raise "Please run `$faye_server = FayeOnline.get_server` first, cause we have to bind disconnect event." if not $faye_server.is_a?(Faye::RackAdapter)
     FayeOnline.redis_opts = redis_opts
     FayeOnline.valid_message_proc = valid_message_proc || (proc {|message| true })
     Redis.current = Redis.new(FayeOnline.redis_opts)
@@ -67,6 +69,56 @@ class FayeOnline
     FayeOnline::Message.new(message).process if not message['auth']
   end
 
+end
+
+
+def FayeOnline.get_server redis_opts, valid_message_proc = nil
+  $faye_server = Faye::RackAdapter.new(
+    :mount   => '/faye',
+    :timeout => 42,
+    :engine  => Faye_redis_opts.merge(:type  => Faye::Redis),
+    :ping => 30 # (optional) how often, in seconds, to send keep-alive ping messages over WebSocket and EventSource connections. Use this if your Faye server will be accessed through a proxy that kills idle connections.
+  )
+
+  $faye_server.bind(:handshake) do |clientId|
+  end
+  $faye_server.bind(:subscribe) do |clientId, channel|
+  end
+  $faye_server.bind(:unsubscribe) do |clientId, channel|
+  end
+  $faye_server.bind(:publish) do |clientId, channel, data|
+  end
+  $faye_server.bind(:disconnect) do |clientId|
+    FayeOnline.disconnect clientId
+
+    # dynamic compute interval seconds
+    tmp = FayeOnline.channel_clientIds_array
+    puts "开始有 #{FayeOnline.uniq_clientIds.count}个"
+    tmp.map(&:last).flatten.shuffle[0..19].each do |_clientId|
+      if not FayeOnline.engine_proxy.has_connection? _clientId
+        puts "开始处理无效 #{_clientId}"
+        # 1. 先伪装去disconnect clientId
+        # 2. 如果失败，就直接操作redis修改
+        if not FayeOnline.disconnect(_clientId)
+          # 没删除成功，因为之前没有设置auth
+          k = (tmp.detect {|a, b| b.index(_clientId) } || [])[0]
+          # 直接从redis清除无效_clientId
+          Redis.current.hgetall(k).each do |k2, v2|
+            v3 = JSON.parse(v2) rescue []
+            v3.delete _clientId
+            Redis.current.hset(k, k2, v3.to_json)
+          end if k
+        end
+      end
+    end
+    puts "结束有 #{FayeOnline.uniq_clientIds.count}个"
+  end
+
+  $faye_server.add_extension FayeOnline.new(redis_opts, valid_message_proc)
+
+  FayeOnline.engine_proxy = $faye_server.instance_variable_get("@server").engine
+
+  return $faye_server
 end
 
 require File.expand_path("../faye-online/message.rb", __FILE__)
