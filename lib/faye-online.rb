@@ -12,6 +12,7 @@ require 'faye/redis'
 
 (proc do
 Faye::WebSocket.load_adapter('thin')
+# Faye::WebSocket.load_adapter('rainbows')
 if ENV['DEBUG_FAYE']
   Faye::Logging.log_level = :debug
   require 'logger'
@@ -98,9 +99,9 @@ def FayeOnline.get_server redis_opts, valid_message_proc = nil
     FayeOnline.disconnect clientId
 
     # dynamic compute interval seconds
-    tmp = FayeOnline.channel_clientIds_array
+    tmp = FayeOnline.channel_clientIds_array.reject {|i| i[1].blank? }
     puts "开始有 #{FayeOnline.uniq_clientIds.count}个"
-    tmp.map(&:last).flatten.shuffle[0..19].each do |_clientId|
+    tmp.map(&:last).flatten.uniq.shuffle[0..19].each do |_clientId|
       if not FayeOnline.engine_proxy.has_connection? _clientId
         puts "开始处理无效 #{_clientId}"
         # 1. 先伪装去disconnect clientId
