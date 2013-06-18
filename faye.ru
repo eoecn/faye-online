@@ -14,8 +14,6 @@ Faye_redis_opts = YAML.load_file(File.join(File.join(ENV['RAILS_PATH'], 'config/
   :engine  => Faye_redis_opts.merge(:type  => Faye::Redis),
 )
 
-# http://faye.jcoglan.com/ruby/monitoring.html
-# http://blog.edweng.com/2012/06/02/faye-extensions-tracking-users-in-a-chat-room/
 @server.bind(:handshake) do |client_id|
 end
 @server.bind(:subscribe) do |client_id, channel|
