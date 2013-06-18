@@ -10,6 +10,7 @@ require 'redis'
 require "faye"
 require 'faye/redis'
 
+(proc do
 Faye::WebSocket.load_adapter('thin')
 if ENV['DEBUG_FAYE']
   Faye::Logging.log_level = :debug
@@ -18,8 +19,10 @@ if ENV['DEBUG_FAYE']
   Faye.logger = lambda {|m| _logger.info m }
 end
 
+# connect to database
 database_yml = ENV['database_yml'] || File.join(ENV['RAILS_PATH'] || `pwd`.strip, 'config/database.yml')
 ActiveRecord::Base.establish_connection YAML.load_file(database_yml).inject({}) {|h, kv| h[kv[0].to_sym] = kv[1]; h }[:production]
+end).call
 
 class FayeOnline
   cattr_accessor :engine_proxy, :redis
