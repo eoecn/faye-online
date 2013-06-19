@@ -20,12 +20,12 @@ configure it,
 @server.add_extension FayeOnline.new(Faye_redis_opts)
 ```
 and start faye server
-```zsh
+```sh
 bundle exec rake faye:start
 ```
 
 4.  faye client
-```javascript
+```js
 var client = new Faye.Client(faye_url)
 var AuthExtension = {
   outgoing: function (message, callback) {
@@ -61,7 +61,7 @@ TODO
 1. 管理后台
 2. 封装持久化数据写入，存储包括做生产用的Redis和测试用的内存。抽象FayeOnline.redis，以避免覆写全局
 3. Cluster front end https://github.com/alexkazeko/faye_shards
-4. use rainbows server, see faye-websocket README
+4. use rainbows server, see faye-websocket README。一些尝试见rainbows.conf, https://groups.google.com/forum/#!msg/faye-users/cMPhvIpk-OU/MgRcFhmz8koJ
 
 
 Related Resources
