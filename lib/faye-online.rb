@@ -42,7 +42,7 @@ class FayeOnline
     FayeOnline.redis = Redis.new(FayeOnline.redis_opts)
     FayeOnline.redis.select FayeOnline.redis_opts[:database]
 
-    FayeOnline.faye_client ||= Faye::Client.new(LOCAL_FAYE_URI)
+    FayeOnline.faye_client ||= Faye::Client.new(LOCAL_FAYE_URI.to_s)
 
     # 配置ActiveRecord
     if Rails.root.nil?
