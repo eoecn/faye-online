@@ -73,7 +73,7 @@ class FayeOnline
     message = {'channel' => '/meta/disconnect', 'clientId' => clientId}
 
     # fake a client to disconnect, 仅仅接受message.auth为空，即网络失去连接的情况
-    FayeOnline::Message.new(message).process if not message['auth']
+    FayeOnline::Message.new(message.merge('fake' => 'true')).process if not message['auth']
   end
 
 end
@@ -82,7 +82,11 @@ end
 def FayeOnline.get_server redis_opts, valid_message_proc = nil
   $faye_server = Faye::RackAdapter.new(
     :mount   => '/faye',
-    :timeout => 42,
+
+    # the maximum time to hold a connection open before returning the response. This is given in seconds and must be smaller than the timeout on your frontend webserver(thin). Faye uses Thin as its webserver, whose default timeout is 30 seconds.
+    # https://groups.google.com/forum/?fromgroups#!topic/faye-users/DvFrPGOinKw
+    :timeout => 60,
+
     :engine  => redis_opts.merge(:type  => Faye::Redis),
     :ping => 30 # (optional) how often, in seconds, to send keep-alive ping messages over WebSocket and EventSource connections. Use this if your Faye server will be accessed through a proxy that kills idle connections.
   )
@@ -96,6 +100,8 @@ def FayeOnline.get_server redis_opts, valid_message_proc = nil
   $faye_server.bind(:publish) do |clientId, channel, data|
   end
   $faye_server.bind(:disconnect) do |clientId|
+    # TODO ping client
+    # [https://groups.google.com/forum/#!searchin/faye-users/disconnect/faye-users/2bn8xUHF5-E/A4a3Sk7RgW4J] It's expected. The browser will not always be able to deliver an explicit disconnect message, which is why there is server-side idle client detection.
     FayeOnline.disconnect clientId
 
     # dynamic compute interval seconds

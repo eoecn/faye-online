@@ -127,12 +127,12 @@ class FayeOnline
     # 渠道信息
     def current_channel
       # 从clientId反设置auth信息，并只设置一次
-      if message['auth'] && !message['is_auth_load']
+      if message['auth'] && !message['_is_auth_load']
         FayeOnline.redis.multi do
           FayeOnline.redis.set(redis_key__auth, message['auth'].to_json)
           FayeOnline.redis.expire(redis_key__auth, 2.weeks)
         end
-        message['is_auth_load'] = true
+        message['_is_auth_load'] = true
       else
         message['auth'] ||= JSON.parse(FayeOnline.redis.get(redis_key__auth)) rescue {}
       end
