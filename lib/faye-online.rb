@@ -140,3 +140,4 @@ end
 
 require File.expand_path("../faye-online/message.rb", __FILE__)
 require File.expand_path("../faye-online/rails_engine.rb", __FILE__)
+require File.expand_path("../faye-online/status.rb", __FILE__)

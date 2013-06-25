@@ -77,10 +77,9 @@ server判断一个user离开房间的两种机制:
 
 TODO
 -------------------------------------------
-1. 管理后台
-3. Cluster front end https://github.com/alexkazeko/faye_shards
-4. use rainbows server, see faye-websocket README。一些尝试见rainbows.conf, https://groups.google.com/forum/#!msg/faye-users/cMPhvIpk-OU/MgRcFhmz8koJ
-5. js输出room_channel和time_channel等信息
+1. FayeOnline.faye_online_status 通用化
+2. Cluster front end https://github.com/alexkazeko/faye_shards
+3. use rainbows server, see faye-websocket README。一些尝试见rainbows.conf, https://groups.google.com/forum/#!msg/faye-users/cMPhvIpk-OU/MgRcFhmz8koJ
 
 
 
