@@ -19,7 +19,6 @@ class FayeOnline
       self
     end
 
-    # 数据: {"channel"=>"/meta/disconnect", "clientId"=>"sqq4oxlwhj84zw92n0e592j8iq989yy", "id"=>"7", "auth"=>{"room_channel"=>"/classes/4", "time_channel"=>"/courses/5/lessons/1", "current_user"=>{"uid"=>470700, "uname"=>"mvj3"}}}
     def process
       @time_begin = Time.now
 
