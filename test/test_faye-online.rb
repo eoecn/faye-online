@@ -9,7 +9,8 @@ require 'faye-online'
 class TestFayeOnline < Test::Unit::TestCase
   def setup
     # setup  database
-    Dir['db/migrate/*'].map {|i| eval File.read(i).gsub(/ENGINE=(MyISAM|Innodb) DEFAULT CHARSET=utf8/i, "") }
+    Dir['db/migrate/*'].map {|i| eval File.read(i).gsub(/ENGINE=(MyISAM|Innodb) DEFAULT CHARSET=utf8/i, "") } # support sqlite
+    # migrate
     FayeCreateUserList.new.change
     AddFayeUserLoginLogs.new.up
 

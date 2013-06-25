@@ -4,9 +4,10 @@ module FayeOnline_Rails
   class Engine < Rails::Engine
     initializer "faye_online_rails.load_app_instance_data" do |app|
       app.class.configure do
-        # Pull in all the migrations from FayeOnline_Rails to the application
-        config.paths['db/migrate'] += FayeOnline_Rails::Engine.paths['db/migrate'].existent
-        config.paths['app/models'] += FayeOnline_Rails::Engine.paths['app/models'].existent
+        ['db/migrate', 'app/assets', 'app/models', 'app/controllers', 'app/views'].each do |path|
+          config.paths[path] ||= []
+          config.paths[path] += QA_Rails::Engine.paths[path].existent
+        end
       end
     end
     initializer "faye_online_rails.load_static_assets" do |app|
