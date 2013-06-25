@@ -1,6 +1,6 @@
 # encoding: UTF-8
 
-def FayeOnline.faye_online_status
+def FayeOnline.status
   array = []
   clientIds = Set.new
   channel_clientIds_array = FayeOnline.channel_clientIds_array
@@ -37,4 +37,43 @@ def FayeOnline.faye_online_status
   end
 
   array
+end
+
+
+def FayeOnline.log params, user_name_proc = proc {|uid| uid }
+  scope = FayeUserLoginLog.order("t ASC")
+
+  # 个人整理后列出
+  if params[:user]
+    scope = scope.where(:uid => user_name_proc.call(params[:user]))
+
+    channel_to_logs = scope.inject({}) {|h, log| i = FayeChannel[log.channel_id]; h[i] ||= []; h[i] << log; h }
+
+    array = ["用户 #{params[:user]}[#{user_name_proc.call(params[:user])}] 的登陆日志详情"]
+    channel_to_logs.each do |channel, logs|
+      array << ''
+      array << channel
+      logs2 = logs.inject({}) {|h, log| h[log.clientId] ||= []; h[log.clientId] << log; h }
+
+      # 合并交叉的时间
+      ctc = CrossTimeCalculation.new
+      logs2.each do |clientId, _logs|
+        # logs = logs.sort {|a, b| (a && a.t) <=> (b && b.t) }
+        if _logs.size > 0
+          # binding.pry if _logs[1].nil?
+          te = _logs[1] ? _logs[1].t : nil
+          ctc.add(_logs[0].t, te)
+          _time_passed = CrossTimeCalculation.new.add(_logs[0].t, te).total_seconds.to_i
+        end
+        array << [clientId, _logs.map {|_log| "#{_log.status}:  #{_log.t.strftime("%Y-%m-%d %H:%M:%S")}" }, "#{_time_passed || '未知'}秒"].flatten.compact.inspect
+      end
+      array << "共用时 #{ctc.total_seconds.to_i}秒"
+    end
+    array
+  # 群体直接列出日志
+  else
+    scope.limit(500).map do |log|
+      [%w[离开 连上][log.status], log.uid, user_name_proc.call(log.uid), log.t.strftime("%Y-%m-%d %H:%M:%S"), FayeChannel[log.channel_id], log.clientId].inspect
+    end
+  end
 end
