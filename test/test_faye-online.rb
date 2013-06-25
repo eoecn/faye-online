@@ -46,14 +46,13 @@ class TestFayeOnline < Test::Unit::TestCase
     # login
     FayeOnline::Message.new(@message_connect).process
     assert_equal FayeOnline.channel_clientIds_array.flatten.count("sqq4oxlwhj84zw92n0e592j8iq989yy"), 2, "Login clientId should have two `sqq4oxlwhj84zw92n0e592j8iq989yy`"
-    assert_equal FayeUserLoginLog.where(:clientId => "sqq4oxlwhj84zw92n0e592j8iq989yy").count, 1, "Login at first time, and there should be only one log"
 
     # relogin the same clientId
     FayeOnline::Message.new(@message_connect).process
     assert_equal FayeOnline.channel_clientIds_array.flatten.count("sqq4oxlwhj84zw92n0e592j8iq989yy"), 2, "Login clientId should have two `sqq4oxlwhj84zw92n0e592j8iq989yy`"
     assert_equal FayeUserLoginLog.where(:clientId => "sqq4oxlwhj84zw92n0e592j8iq989yy").count, 1, "Login at second time, but there should only one log"
 
-    assert_equal FayeChannelOnlineList.where(:channel_id => @room_channel_id).first.user_list, Set.new.add(470700), "There should be only 470700 user"
+    assert_equal FayeChannelOnlineList.where(:channel_id => @room_channel_id).first.user_list, Set.new([470700]), "There should be only 470700 user"
 
     # logout
     msg = @message_connect.dup
@@ -61,6 +60,38 @@ class TestFayeOnline < Test::Unit::TestCase
     FayeOnline::Message.new(msg).process
     assert_equal FayeOnline.channel_clientIds_array.flatten.count("sqq4oxlwhj84zw92n0e592j8iq989yy"), 0, "Login clientId should have none `sqq4oxlwhj84zw92n0e592j8iq989yy`"
     assert_equal FayeUserLoginLog.where(:clientId => "sqq4oxlwhj84zw92n0e592j8iq989yy").count, 2, "Login twice, but there should only two log"
+
+    FayeUserLoginLog.delete_all
+  end
+
+  def test_more_user
+    # login id#1, id#470700
+    [@message_connect, @message_connect_1].each {|msg| FayeOnline::Message.new(msg).process }
+    assert_equal FayeUserLoginLog.where(:clientId => [@message_connect['clientId'], @message_connect_1['clientId']]).count, 2, "Two user login, and there should have two logs"
+    assert_equal FayeChannelOnlineList.where(:channel_id => @room_channel_id).first.user_list, Set.new([1, 470700]), "There should be two user"
+
+    # logout id#1
+    FayeOnline::Message.new(@message_connect_1.merge("channel" => "/meta/disconnect")).process
+    assert_equal FayeUserLoginLog.where(:clientId => [@message_connect['clientId'], @message_connect_1['clientId']]).count, 3, "two user logins, one of them logout, and there should have three logs"
+    assert_equal FayeChannelOnlineList.where(:channel_id => @room_channel_id).first.user_list, Set.new([470700]), "There should be one user"
+
+    # login id#1, id#2
+    [@message_connect_1, @message_connect_2].each {|msg| FayeOnline::Message.new(msg).process }
+    assert_equal FayeUserLoginLog.where(:clientId => [@message_connect['clientId'], @message_connect_1['clientId'], @message_connect_2['clientId']]).count, 5, "five logs"
+    assert_equal FayeChannelOnlineList.where(:channel_id => @room_channel_id).first.user_list, Set.new([1, 2, 470700]), "There should be three user"
+
+    # logout id#470700
+    FayeOnline::Message.new(@message_connect.merge("channel" => "/meta/disconnect")).process
+    assert_equal FayeUserLoginLog.where(:clientId => [@message_connect['clientId'], @message_connect_1['clientId'], @message_connect_2['clientId']]).count, 6, "six logs"
+    assert_equal FayeChannelOnlineList.where(:channel_id => @room_channel_id).first.user_list, Set.new([1, 2]), "There should be two user"
+
+    # logout id#1, #id2
+    FayeOnline::Message.new(@message_connect_1.merge("channel" => "/meta/disconnect")).process
+    FayeOnline::Message.new(@message_connect_2.merge("channel" => "/meta/disconnect")).process
+    assert_equal FayeUserLoginLog.where(:clientId => [@message_connect['clientId'], @message_connect_1['clientId'], @message_connect_2['clientId']]).count, 8, "eight logs"
+    assert_equal FayeChannelOnlineList.where(:channel_id => @room_channel_id).first.user_list, Set.new, "There should be none user"
+
+    FayeUserLoginLog.delete_all
   end
 
   def test_online_time
