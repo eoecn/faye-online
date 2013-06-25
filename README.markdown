@@ -44,22 +44,26 @@ eoe.faye = Faye.init_online_client({
 });
 ```
 
-Tech
+术语表
 -------------------------------------------
-用户离开房间的两种情况:
+### 用户上线
+有很多个clientId连到server。其中可能多个clientId关联的是一个user，这个在 Faye.init_online_client 可以配置。
 
-1. 关闭所有相关页面。client端主动触发disconnect发消息。
-2. 网络掉线。server端ping定时检测。
+### 用户离线
+一个user关联的所有clientId失去连接后才算离线。
+server判断一个user离开房间的两种机制:
+1. client端主动触发disconnect发消息，对于的实际操作是关闭所有相关页面。
+2. 网络掉线。在 `FayeOnline.get_server` 设置gc参数让server端定时ping所有的clientId，具体方法是 `FayeOnline.engine_proxy.has_connection? clientId`。如果检测是失去连接，那么server就给自己发个伪装的disconnect消息。 清理失去网络连接的clientIds:
 
-清理失去网络连接的clientIds:
+
 
 TODO
 -------------------------------------------
 1. 管理后台
-2. 封装持久化数据写入，存储包括做生产用的Redis和测试用的内存。抽象FayeOnline.redis，以避免覆写全局
 3. Cluster front end https://github.com/alexkazeko/faye_shards
 4. use rainbows server, see faye-websocket README。一些尝试见rainbows.conf, https://groups.google.com/forum/#!msg/faye-users/cMPhvIpk-OU/MgRcFhmz8koJ
 5. js输出room_channel和time_channel等信息
+
 
 
 Related Resources
