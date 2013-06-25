@@ -19,7 +19,11 @@ bundle exec rake db:migrate
 Create a faye.ru at your rails app root, configure it,
 
 ```ruby
-$faye_server = FayeOnline.get_server {:host=>"localhost", :port=>6379, :database=>1, :namespace=>"faye", :gc=>5}
+$faye_server = FayeOnline.get_server(:host=>"localhost",
+                                     :port=>6379,
+                                     :database=>1,
+                                     :namespace=>"faye",
+                                     :gc=>5)
 run $faye_server
 ```
 
@@ -32,7 +36,7 @@ DEBUG_FAYE=true DEBUG=true bundle exec rackup faye.ru -s thin -E production -p 9
 
 4.  faye client
 
-```js
+```javascript
 eoe.faye = Faye.init_online_client({
   faye_url: faye_url,
   client_opts: {},
@@ -51,7 +55,16 @@ eoe.faye = Faye.init_online_client({
 示例数据为: 
 
 ```json
-{"channel"=>"/meta/connect", "clientId"=>"sqq4oxlwhj84zw92n0e592j8iq989yy", "id"=>"7", "auth"=>{"room_channel"=>"/classes/4", "time_channel"=>"/courses/5/lessons/1", "current_user"=>{"uid"=>470700, "uname"=>"mvj3"}}}
+{
+  "channel"=>"/meta/connect",
+  "clientId"=>"sqq4oxlwhj84zw92n0e592j8iq989yy",
+  "id"=>"7",
+  "auth"=>{
+    "room_channel"=>"/classes/4",
+    "time_channel"=>"/courses/5/lessons/1",
+    "current_user"=>{"uid"=>470700, "uname"=>"mvj3"}
+  }
+}
 ```
 
 ### 用户上线
@@ -60,8 +73,10 @@ eoe.faye = Faye.init_online_client({
 ### 用户离线
 一个user关联的所有clientId失去连接后才算离线。
 server判断一个user离开房间的两种机制:
+
 1. client端主动触发disconnect发消息，对于的实际操作是关闭所有相关页面。
-2. 网络掉线。在 `FayeOnline.get_server` 设置gc参数让server端定时ping所有的clientId，具体方法是 `FayeOnline.engine_proxy.has_connection? clientId`。如果检测是失去连接，那么server就给自己发个伪装的disconnect消息。 清理失去网络连接的clientIds:
+
+2. 网络掉线。在 `FayeOnline.get_server` 设置gc参数让server端定时ping所有的clientId，具体方法是 `FayeOnline.engine_proxy.has_connection? clientId`。如果检测是失去连接，那么server就给自己发个伪装的disconnect消息，从而清理失去网络连接的clientId。
 
 
 改进的客户端autodisconnect
@@ -71,7 +86,9 @@ server判断一个user离开房间的两种机制:
 
 ### 改进的方案
 在浏览器关闭前，发送给server一个过几秒后检测当前clientId是否失去连接的事件。
+
 1, 这样如果浏览器真的关掉了，那就和原来的autodisconnect发送的"/meta/disconnect"消息一样。
+
 2, 如果浏览器被用户选择否定关掉，那浏览器里的client对象还是没被销毁，而继续存活。
 
 
