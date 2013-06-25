@@ -21,6 +21,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'sqlite3'
   s.add_development_dependency 'combustion'
   s.add_development_dependency 'pry-debugger'
+  s.add_development_dependency 'fakeredis'
 
   s.files = `git ls-files`.split("\n")
 

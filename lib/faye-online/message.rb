@@ -99,7 +99,7 @@ class FayeOnline
       FayeOnline.redis.hset redis_key__time, current_user['uid'], current_user_in_current_time__clientIds.to_json
 
       # 发布在线用户列表
-      FayeOnline.faye_client.publish("#{room_channel}/user_list", {'count' => online_list.user_count, 'user_list' => online_list.user_list, 'channel_name' => room_channel})
+      FayeOnline.faye_client.publish("#{room_channel}/user_list", {'count' => online_list.user_count, 'user_list' => online_list.user_list}) if FayeOnline.faye_client
 
       puts "本次处理处理时间 #{((Time.now - @time_begin) * 1000).round(2)}ms" if ENV['DEBUG']
       puts message.inspect
