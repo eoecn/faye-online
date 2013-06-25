@@ -23,6 +23,17 @@ class FayeOnline
     def process
       @time_begin = Time.now
 
+      # 主动检测是否离开，以减少GC的消耗
+      # TODO re-implement autodisonnect, pull request to faye.gem
+      if message['channel'] == "/faye_online/before_leave"
+        EM.run do
+          EM.add_timer(3) do
+            FayeOnline.disconnect(current_clientId) if not FayeOnline.engine_proxy.has_connection?(current_clientId)
+          end
+        end
+        return false;
+      end
+
       # 验证是否用FayeOnline处理
       step_idx = MONITORED_CHANNELS.index(message['channel'])
       return false if step_idx.nil?
@@ -57,7 +68,7 @@ class FayeOnline
         when 1
           # 解除 因意外原因导致的 clientId 没有过期
           current_user_current_clientIds.each do |_clientId|
-            str = if FayeOnline.engine_proxy.has_connection? _clientId
+            str = if FayeOnline.engine_proxy.has_connection?(_clientId)
               "clientId[#{_clientId}] 还有连接"
             else
               [current_user_current_clientIds_arrays, current_user_in_current_time__clientIds].each {|a| a.delete _clientId }

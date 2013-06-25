@@ -41,5 +41,12 @@ Faye.init_online_client = function(opts) {
   };
   faye.addExtension(AuthExtension);
 
+  // notice server to check my clientId after a few seconds, if there's
+  // no connection, and disconnect my clientId.
+  $(window).bind('beforeunload', function(event) {
+    faye.publish("/faye_online/before_leave");
+  });
+
+
   return faye;
 }; 
