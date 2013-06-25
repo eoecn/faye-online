@@ -95,6 +95,16 @@ class TestFayeOnline < Test::Unit::TestCase
   end
 
   def test_online_time
+    channel_name = 'test'
+    online_time = FayeUserOnlineTime.find_or_create_by_user_id(@message_connect['auth']['current_user']['uid'])
+    assert_equal online_time.start?(channel_name), false
+
+    online_time.start channel_name
+    assert_equal online_time.start?(channel_name), true
+    sleep 1
+    online_time.stop channel_name
+    assert_equal online_time.spend_time_in_realtime(channel_name).zero?, false
+    assert_equal online_time.spend_time(channel_name).zero?, false
   end
 
 end
