@@ -115,6 +115,8 @@ server判断一个user离开房间的两种机制:
 
 2, 如果浏览器被用户选择否定关掉，那浏览器里的client对象还是没被销毁，而继续存活。
 
+具体见对lib/faye-online/message.rb里对 /faye_online/before_leave 的基于EventMachine的定时器处理。
+
 
 TODO
 -------------------------------------------
