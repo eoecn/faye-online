@@ -3,7 +3,7 @@ Faye Online user list and time count
 
 Usage
 -------------------------------------------
-1.  Add it to Gemfile
+1. Add it to Gemfile
 
 ```ruby
 gem 'faye-online'
@@ -15,7 +15,8 @@ gem 'faye-online'
 bundle exec rake db:migrate
 ```
 
-3.  faye server
+3. faye server
+
 Create a faye.ru at your rails app root, configure it,
 
 ```ruby
@@ -34,7 +35,9 @@ bundle exec rake faye:start
 DEBUG_FAYE=true DEBUG=true bundle exec rackup faye.ru -s thin -E production -p 9292
 ```
 
-4.  faye client
+4. faye client
+
+init faye client
 
 ```javascript
 eoe.faye = Faye.init_online_client({
@@ -48,7 +51,15 @@ eoe.faye = Faye.init_online_client({
 });
 ```
 
-Date Storage Stucture
+subscribe user_list channel
+
+```javascript
+eoe.faye.subscribe(eoe.class_channel + '/user_list', function (message) {
+  console.log(message.count, message.user_list);
+})
+```
+
+Data Storage Stucture
 -------------------------------------------
 *   mysql.table.faye_channels channel name to id, use for key value cache.
 *   mysql.table.faye_channel_online_lists online user list, store as Set data structure, add and delete.
