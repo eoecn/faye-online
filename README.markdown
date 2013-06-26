@@ -48,7 +48,20 @@ eoe.faye = Faye.init_online_client({
 });
 ```
 
-术语表
+Date Storage Stucture
+-------------------------------------------
+*   mysql.table.faye_channels channel name to id, use for key value cache.
+*   mysql.table.faye_channel_online_lists online user list, store as Set data structure, add and delete.
+*   mysql.table.faye_user_online_times user online time, store every start time and spend time.
+*   mysql.table.faye_user_login_logs verbose user login log, used for caculate online times alternately.
+*   .
+*   redis.hashes.ns/uid_to_clientids/room_channel all clientids of one uid in a room_channel
+*   redis.hashes.ns/uid_to_clientids/time_channel all clientids of one uid in a time_channel
+*   redis.keys.ns/clientid_auth/clientid map clientid to user info
+*   redis.keys.ns/clientid_status/clientid current clientid is login or logout
+
+
+Glossary of Terms
 -------------------------------------------
 ### clientId
 客户端(一般是浏览器里的javascript)连到服务器后自动分配一个clientId。
@@ -67,10 +80,10 @@ eoe.faye = Faye.init_online_client({
 }
 ```
 
-### 用户上线
+### User Login
 有很多个clientId连到server。其中可能多个clientId关联的是一个user，这个在 Faye.init_online_client 可以配置。
 
-### 用户离线
+### User Logout
 一个user关联的所有clientId失去连接后才算离线。
 server判断一个user离开房间的两种机制:
 
@@ -82,7 +95,7 @@ server判断一个user离开房间的两种机制:
 改进的客户端autodisconnect
 -------------------------------------------
 ### 原来的情况
-在用户关闭浏览器前触发一个"/meta/disconnect"请求。这样如果用户否定关闭后，client对象却依据被销毁了。
+在用户关闭浏览器前触发一个"/meta/disconnect"请求。这样如果用户否定关闭后，client对象却还是被销毁了。
 
 ### 改进的方案
 在浏览器关闭前，发送给server一个过几秒后检测当前clientId是否失去连接的事件。
@@ -97,6 +110,7 @@ TODO
 1. FayeOnline.faye_online_status 通用化
 2. Cluster front end https://github.com/alexkazeko/faye_shards
 3. use rainbows server, see faye-websocket README。一些尝试见rainbows.conf, https://groups.google.com/forum/#!msg/faye-users/cMPhvIpk-OU/MgRcFhmz8koJ
+4. 英文化
 
 
 
