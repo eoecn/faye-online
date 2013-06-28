@@ -18,7 +18,7 @@ class TestFayeOnline < Test::Unit::TestCase
   AddFayeUserLoginLogs.new.up
 
   # setup redis & faye server
-  redis_opts = {:host=>"localhost", :port=>50000, :database=>1, :namespace=>"faye"}
+  redis_opts = {:host=>"localhost", :port=>50000, :database=>1, :namespace=>"faye", :faye_port => 9292}
   $faye_server = FayeOnline.get_server redis_opts
   FayeOnline.faye_client = nil # dont publish from server to client
 

@@ -26,15 +26,16 @@ ActiveRecord::Base.establish_connection YAML.load_file(database_yml).inject({}) 
 end).call
 
 class FayeOnline
-  cattr_accessor :engine_proxy, :redis
+  cattr_accessor :engine_proxy, :redis, :faye_uri
 
   ValidChannel = proc {|channel| !!channel.to_s.match(/\A[0-9a-z\/]+\Z/i) } # 只支持数字字母和斜杠
   MONITORED_CHANNELS = ['/meta/connect', '/meta/disconnect'] # '/meta/subscribe', '/connect', '/close' are ignored
   LOCAL_IP = Socket.ip_address_list.detect{|intf| intf.ipv4_private?}.ip_address # http://stackoverflow.com/questions/5029427/ruby-get-local-ip-nix
-  LOCAL_FAYE_URI = URI.parse("http://#{LOCAL_IP}:#{ENV['FAYE_PORT'] || 9292}/faye")
   cattr_accessor :redis_opts, :faye_client, :valid_message_proc
 
   def initialize redis_opts, valid_message_proc = nil
+    raise "faye_port it not configed in redis_opts, cause other app need to read FayeOnline.faye_uri variable for connecting" if redis_opts[:faye_port].nil?
+    FayeOnline.faye_uri = URI.parse("http://#{LOCAL_IP}:#{redis_opts[:faye_port]}/faye")
 
     raise "Please run `$faye_server = FayeOnline.get_server` first, cause we have to bind disconnect event." if not $faye_server.is_a?(Faye::RackAdapter)
     FayeOnline.redis_opts = redis_opts
@@ -42,7 +43,7 @@ class FayeOnline
     FayeOnline.redis = Redis.new(FayeOnline.redis_opts)
     FayeOnline.redis.select FayeOnline.redis_opts[:database]
 
-    FayeOnline.faye_client ||= Faye::Client.new(LOCAL_FAYE_URI.to_s)
+    FayeOnline.faye_client ||= Faye::Client.new(FayeOnline.faye_uri.to_s)
 
     # 配置ActiveRecord
     if Rails.root.nil?
