@@ -6,7 +6,7 @@ def FayeOnline.status
   channel_clientIds_array = FayeOnline.channel_clientIds_array
 
   clientId_to_users = channel_clientIds_array.map(&:last).flatten.uniq.inject({}) do |h, _clientId|
-    _data = JSON.parse(Redis.current.get("/#{FayeOnline.redis_opts[:namespace]}/clientId_auth/#{_clientId}")) rescue {}
+    _data = JSON.parse(FayeOnline.redis.get("/#{FayeOnline.redis_opts[:namespace]}/clientId_auth/#{_clientId}")) rescue {}
     h[_clientId] = (_data['current_user'] || {}).except('uhash').values
     h
   end

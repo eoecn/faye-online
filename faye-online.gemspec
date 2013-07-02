@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.name        = 'faye-online'
-  s.version     = '0.1.1'
-  s.date        = '2013-06-28'
+  s.version     = '0.1.2'
+  s.date        = '2013-07-02'
   s.summary     = File.read("README.markdown").split(/===+/)[0].strip
   s.description = s.summary
   s.authors     = ["David Chen"]
