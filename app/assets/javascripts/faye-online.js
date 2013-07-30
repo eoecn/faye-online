@@ -9,8 +9,8 @@ Faye.init_online_client = function(opts) {
   if (!opts.faye_url) { throw("faye_url is not defined!"); }
   opts.client_opts = $.extend({
     timeout: 10, // 只用于client连server时的主动检测timeout。如果client自行disconnect，那就没办法了。
-    interval: 5, // handshake every 5 seconds
-    retry: 5
+    interval: 60, // handshake every 60 seconds
+    retry: 15
   }, opts.client_opts);
   var faye = new Faye.Client(opts.faye_url, opts.client_opts);
   // faye.getState() // "DISCONNECTED"
