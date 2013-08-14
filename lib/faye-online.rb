@@ -30,7 +30,7 @@ class FayeOnline
 
   ValidChannel = proc {|channel| !!channel.to_s.match(/\A[0-9a-z\/]+\Z/i) } # 只支持数字字母和斜杠
   MONITORED_CHANNELS = ['/meta/connect', '/meta/disconnect'] # '/meta/subscribe', '/connect', '/close' are ignored
-  LOCAL_IP = Socket.ip_address_list.detect{|intf| intf.ipv4_private?}.ip_address # http://stackoverflow.com/questions/5029427/ruby-get-local-ip-nix
+  LOCAL_IP = Socket.ip_address_list.select(&:ipv4_private?).map(&:ip_address).first # http://stackoverflow.com/questions/5029427/ruby-get-local-ip-nix
   cattr_accessor :redis_opts, :faye_client, :valid_message_proc
 
   def initialize redis_opts, valid_message_proc = nil
